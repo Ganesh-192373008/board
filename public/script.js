@@ -1,55 +1,56 @@
-const canvas = document.getElementById("board");
-const ctx = canvas.getContext("2d");
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+const canvas = document.getElementById('board');
+const ctx    = canvas.getContext('2d');
 
-let color = 'black';
+function resize() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
 let drawing = false;
+let last    = {};
+let color   = 'black';
 
-// Use dynamic WebSocket URL for cloud hosting
-let protocol = window.location.protocol === "https:" ? "wss" : "ws";
-let socket = new WebSocket(${protocol}://${window.location.host});
+/* 1️⃣  Dynamic WebSocket URL for Render/localhost */
+const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+const socket   = new WebSocket(`${protocol}://${window.location.host}`);
 
-socket.onmessage = function(event) {
-  event.data.text().then((message) => {
-    const data = JSON.parse(message);
-    draw(data.x0, data.y0, data.x1, data.y1, data.color, false);
-  }).catch(err => console.error("Error reading message:", err));
-};
-
+/* 2️⃣  Draw helper */
 function draw(x0, y0, x1, y1, color = 'black', emit = true) {
   ctx.beginPath();
   ctx.moveTo(x0, y0);
   ctx.lineTo(x1, y1);
+  ctx.lineWidth   = 2;
   ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
   ctx.stroke();
   ctx.closePath();
 
-  if (!emit) return;
-
-  const data = { x0, y0, x1, y1, color };
-  socket.send(JSON.stringify(data));
+  if (emit) {
+    socket.send(JSON.stringify({ x0, y0, x1, y1, color }));
+  }
 }
 
-let last = {};
+/* 3️⃣  Incoming strokes */
+socket.onmessage = e => {
+  try {
+    const { x0, y0, x1, y1, color } = JSON.parse(e.data);
+    draw(x0, y0, x1, y1, color, false);
+  } catch (err) {
+    console.error('Malformed WS message:', err);
+  }
+};
 
-canvas.addEventListener("mousedown", (e) => {
+/* 4️⃣  Mouse events */
+canvas.onmousedown = e => {
   drawing = true;
-  last = { x: e.clientX, y: e.clientY };
-});
+  last    = { x: e.clientX, y: e.clientY };
+};
 
-canvas.addEventListener("mouseup", () => {
-  drawing = false;
-});
+canvas.onmouseup   = () => (drawing = false);
 
-canvas.addEventListener("mousemove", (e) => {
+canvas.onmousemove = e => {
   if (!drawing) return;
   draw(last.x, last.y, e.clientX, e.clientY, color, true);
   last = { x: e.clientX, y: e.clientY };
-});
-
-window.addEventListener("resize", () => {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-});
+};
