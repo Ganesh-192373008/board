@@ -6,26 +6,24 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-/* Serve every static file in the repo root */
+/* Serve static files from the repo root */
 app.use(express.static(__dirname));
 
-/* Fallback for "/" */
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
-});
+app.get('/', (req, res) =>
+  res.sendFile(path.join(__dirname, 'index.html'))
+);
 
 const server = http.createServer(app);
 const wss    = new WebSocket.Server({ server });
 
-/* ---- WebSocket broadcast ---- */
+/* 🔑  Broadcast *any* incoming WS message to every other client */
 wss.on('connection', socket => {
   console.log('Client connected');
 
   socket.on('message', data => {
-    // Forward ANY message (draw OR clear) to all other clients
     wss.clients.forEach(client => {
       if (client !== socket && client.readyState === WebSocket.OPEN) {
-        client.send(data);
+        client.send(data);        // forward draw **and** clear messages
       }
     });
   });
