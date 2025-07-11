@@ -12,11 +12,10 @@ let drawing = false;
 let last    = {};
 let color   = 'black';
 
-/* 1️⃣  Dynamic WebSocket URL for Render/localhost */
+// ✅ Dynamically determine protocol for WS (supports Render)
 const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
 const socket   = new WebSocket(`${protocol}://${window.location.host}`);
 
-/* 2️⃣  Draw helper */
 function draw(x0, y0, x1, y1, color = 'black', emit = true) {
   ctx.beginPath();
   ctx.moveTo(x0, y0);
@@ -31,23 +30,25 @@ function draw(x0, y0, x1, y1, color = 'black', emit = true) {
   }
 }
 
-/* 3️⃣  Incoming strokes */
+// ✅ Handle incoming messages
 socket.onmessage = e => {
   try {
     const { x0, y0, x1, y1, color } = JSON.parse(e.data);
     draw(x0, y0, x1, y1, color, false);
   } catch (err) {
-    console.error('Malformed WS message:', err);
+    console.error('Malformed message:', err);
   }
 };
 
-/* 4️⃣  Mouse events */
+// ✅ Mouse Events
 canvas.onmousedown = e => {
   drawing = true;
-  last    = { x: e.clientX, y: e.clientY };
+  last = { x: e.clientX, y: e.clientY };
 };
 
-canvas.onmouseup   = () => (drawing = false);
+canvas.onmouseup = () => {
+  drawing = false;
+};
 
 canvas.onmousemove = e => {
   if (!drawing) return;
