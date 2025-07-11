@@ -3,29 +3,35 @@ const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.static(path.join(__dirname, 'public')));
+/* 1️⃣  Serve static files (root folder works on Render & locally) */
+app.use(express.static(__dirname));
+
+/* 2️⃣  Fallback for “/” */
+app.get('/', (req, res) =>
+  res.sendFile(path.join(__dirname, 'index.html'))
+);
 
 const server = http.createServer(app);
-const wss = new WebSocket.Server({ server });
+const wss    = new WebSocket.Server({ server });
 
 wss.on('connection', socket => {
-    console.log('Client connected');
-    socket.on('message', message => {
-        wss.clients.forEach(client => {
-            if (client !== socket && client.readyState === WebSocket.OPEN) {
-                client.send(message);
-            }
-        });
-    });
+  console.log('Client connected');
 
-    socket.on('close', () => {
-        console.log('Client disconnected');
+  socket.on('message', data => {
+    // broadcast to everyone *except* sender
+    wss.clients.forEach(client => {
+      if (client !== socket && client.readyState === WebSocket.OPEN) {
+        client.send(data);
+      }
     });
+  });
+
+  socket.on('close', () => console.log('Client disconnected'));
 });
 
-server.listen(PORT, () => {
-    console.log(`Server running at http://localhost:${PORT}`);
-});
+server.listen(PORT, () =>
+  console.log(`Server running at http://localhost:${PORT}`)
+);
