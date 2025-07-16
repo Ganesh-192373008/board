@@ -6,6 +6,13 @@ canvas.height = window.innerHeight;
 let color = 'black';
 let drawing = false;
 
+// Color picker logic
+const colorPicker = document.getElementById("colorPicker");
+colorPicker.addEventListener("input", (e) => {
+  color = e.target.value;
+});
+
+// WebSocket setup
 let protocol = window.location.protocol === "https:" ? "wss" : "ws";
 let socket = new WebSocket(`${protocol}://${window.location.host}`);
 
@@ -52,3 +59,12 @@ window.addEventListener("resize", () => {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 });
+
+// Save function
+function saveImage() {
+  const link = document.createElement("a");
+  link.download = "whiteboard.png";
+  link.href = canvas.toDataURL("image/png");
+  link.target = "_blank";
+  link.click();
+}
