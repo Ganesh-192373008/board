@@ -8,6 +8,7 @@
       margin: 0;
       height: 100%;
       overflow: hidden;
+      font-family: sans-serif;
     }
     canvas {
       border: 2px solid #000;
@@ -18,18 +19,40 @@
       top: 10px;
       left: 10px;
       z-index: 10;
-      background: rgba(255, 255, 255, 0.8);
-      padding: 8px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 10px;
       border-radius: 8px;
+      box-shadow: 0 0 5px #aaa;
+    }
+    #toolbar input[type="range"] {
+      width: 100px;
+      vertical-align: middle;
+    }
+    #toolbar button {
+      margin-left: 5px;
+      padding: 4px 8px;
     }
   </style>
 </head>
 <body>
+
   <div id="toolbar">
+    <label>Color:</label>
     <input type="color" id="colorPicker" value="#000000">
+
+    <label>Size:</label>
+    <input type="range" id="penSize" min="1" max="20" value="2">
+
+    <button onclick="toggleEraser()">Eraser</button>
+    <button onclick="undo()">Undo</button>
+    <button onclick="redo()">Redo</button>
+    <button onclick="clearCanvas()">Clear</button>
     <button onclick="saveImage()">Save</button>
+    <button onclick="viewImage()">View Saved</button>
   </div>
+
   <canvas id="board"></canvas>
+
   <script src="script.js"></script>
 </body>
 </html>
