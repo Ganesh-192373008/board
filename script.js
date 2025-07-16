@@ -20,15 +20,15 @@ document.getElementById("penSize").addEventListener("input", e => {
 
 function saveState() {
   history.push(canvas.toDataURL());
-  if (history.length > 20) history.shift(); // limit history size
+  if (history.length > 20) history.shift(); // limit history
   redoStack = []; // clear redo stack
 }
 
 function undo() {
   if (history.length === 0) return;
   redoStack.push(canvas.toDataURL());
-  let previous = history.pop();
-  let img = new Image();
+  const previous = history.pop();
+  const img = new Image();
   img.src = previous;
   img.onload = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -38,9 +38,9 @@ function undo() {
 
 function redo() {
   if (redoStack.length === 0) return;
-  saveState();
-  let next = redoStack.pop();
-  let img = new Image();
+  const next = redoStack.pop();
+  history.push(canvas.toDataURL());
+  const img = new Image();
   img.src = next;
   img.onload = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -102,6 +102,7 @@ canvas.addEventListener("mousedown", (e) => {
   drawing = true;
   last = { x: e.clientX, y: e.clientY };
   saveState();
+  document.getElementById("preview").style.display = "none"; // hide preview if shown
 });
 canvas.addEventListener("mouseup", () => {
   drawing = false;
@@ -117,7 +118,6 @@ window.addEventListener("resize", () => {
   canvas.height = window.innerHeight;
 });
 
-// Save to localStorage and download
 function saveImage() {
   const dataURL = canvas.toDataURL("image/png");
   localStorage.setItem("savedWhiteboard", dataURL);
@@ -129,8 +129,11 @@ function saveImage() {
 
 function viewImage() {
   const saved = localStorage.getItem("savedWhiteboard");
+  const preview = document.getElementById("preview");
+
   if (saved) {
-    window.open(saved, "_blank");
+    preview.src = saved;
+    preview.style.display = "block";
   } else {
     alert("No saved image found.");
   }
